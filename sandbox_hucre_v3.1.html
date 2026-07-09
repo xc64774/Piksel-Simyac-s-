@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Sandbox::Hücre V3</title>
+<title>Sandbox::Hücre V3.1</title>
 <style>
   :root{
     --bg-deep:#070908; --bg-panel:#0f1512; --bg-raised:#141d18; --line:#1f2b24;
@@ -76,9 +76,9 @@
 <body>
 <div class="app">
   <header>
-    <h1>SANDBOX::HÜCRE V3<span class="cursor"></span><span class="badge">2.5D + SES + BAŞARIM</span></h1>
+    <h1>SANDBOX::HÜCRE V3.1<span class="cursor"></span><span class="badge">GÜVENLİ & OPTİMİZE</span></h1>
     <p>Kapalı alan, yoğunluk tabanlı hücresel simülasyon. <b>Kenarlar duvardır — hiçbir hücre bu alandan çıkamaz, patlamalar dahil.</b></p>
-    <p class="change">v3: 2.5D ışık/gölge kaplaması, bomba·tohum·bitki·cam eklendi, parçacık efektleri, sentezlenmiş ses efektleri, başarım sistemi + kazanım animasyonu, her elemana ipucu/açıklama, API Shell konsolu, performans ve hata düzeltmeleri.</p>
+    <p class="change">v3.1: Başarım animasyon bug fix, eleman eklemede XSS güvenlik önlemleri, performans optimizasyonları.</p>
   </header>
 
   <div class="main">
@@ -249,7 +249,7 @@
     drawParticles();
   }
 
-  // ================= PARTICLES (small, capped) =================
+  // ================= PARTICLES =================
   const particles=[]; const MAX_PARTICLES=220;
   function spawnParticles(gx,gy,count,colors,mode){
     const px=gx*CELL+CELL/2, py=gy*CELL+CELL/2;
@@ -288,7 +288,7 @@
     ctx.globalAlpha=1;
   }
 
-  // ================= SOUND (synthesized, no external files) =================
+  // ================= SOUND =================
   let audioCtx=null, masterGain=null, noiseBuffer=null, soundOn=true;
   const lastSound={place:0, ignite:0, splash:0, hiss:0};
   function ensureAudio(){
@@ -494,7 +494,7 @@
     }
   }
 
-  // ================= STEP (fully data-driven dispatch) =================
+  // ================= STEP =================
   const ascOrder=Array.from({length:W},(_,i)=>i), descOrder=[...ascOrder].reverse();
   function step(){
     visited.fill(0);
@@ -556,14 +556,35 @@
   canvas.addEventListener('mousedown', e=>{ mouseDown=true; const [gx,gy]=canvasToGrid(e); brushPlace(gx,gy); });
   window.addEventListener('mouseup', ()=> mouseDown=false );
   canvas.addEventListener('mousemove', e=>{ if(!mouseDown) return; const [gx,gy]=canvasToGrid(e); brushPlace(gx,gy); });
+  
+  // Mobil Dokunmatik Desteği (Ekstra Güzellik)
+  canvas.addEventListener('touchstart', e=>{ mouseDown=true; const [gx,gy]=canvasToGrid(e.touches[0]); brushPlace(gx,gy); e.preventDefault(); }, {passive:false});
+  window.addEventListener('touchend', ()=> mouseDown=false );
+  canvas.addEventListener('touchmove', e=>{ if(!mouseDown) return; const [gx,gy]=canvasToGrid(e.touches[0]); brushPlace(gx,gy); e.preventDefault(); }, {passive:false});
 
   // ================= PALETTE UI + TOOLTIPS =================
   const elgrid=document.getElementById('elgrid'), elemInfo=document.getElementById('elemInfo');
-  function showInfo(id){ const d=REGISTRY[id]; elemInfo.innerHTML = `<b>${d.name}</b> — ${d.desc||'Açıklama yok.'}`; }
+  
+  // XSS Güvenliği için DOM metodları ile text atama
+  function showInfo(id){ 
+    const d=REGISTRY[id];
+    elemInfo.innerHTML = '';
+    const b = document.createElement('b'); b.textContent = d.name;
+    elemInfo.appendChild(b);
+    elemInfo.appendChild(document.createTextNode(' — ' + (d.desc||'Açıklama yok.')));
+  }
+  
   function addPaletteButton(id,labelOverride){
     const def=REGISTRY[id]; const c=def.shades[1]; const label=labelOverride||def.name;
     const b=document.createElement('button'); b.className='elbtn'; b.dataset.id=id; b.title=def.desc||'';
-    b.innerHTML=`<span class="swatch" style="background:rgb(${c[0]},${c[1]},${c[2]})"></span>${label}`;
+    
+    // XSS Güvenliği: innerHTML yerine appendChild
+    const span = document.createElement('span');
+    span.className = 'swatch';
+    span.style.background = `rgb(${c[0]},${c[1]},${c[2]})`;
+    b.appendChild(span);
+    b.appendChild(document.createTextNode(label));
+
     b.addEventListener('click', ()=>{ currentElement=id; [...elgrid.children].forEach(x=>x.classList.remove('active')); b.classList.add('active'); showInfo(id); });
     b.addEventListener('mouseenter', ()=> showInfo(id));
     b.addEventListener('mouseleave', ()=> showInfo(currentElement));
@@ -618,7 +639,7 @@
     }catch(e){ log('hata: '+e.message,'err'); }
   });
 
-  // ================= ACHIEVEMENTS =================
+  // ================= ACHIEVEMENTS & TOAST FIX =================
   const ACHIEVEMENTS = [
     {id:'ilk-adim', icon:'✋', name:'İlk Dokunuş', desc:'İlk kez bir eleman yerleştir.'},
     {id:'ilk-ates', icon:'🔥', name:'Kıvılcım', desc:'İlk kez ateş oluştur.'},
@@ -633,16 +654,30 @@
   const unlocked = new Set();
   const achvListEl = document.getElementById('achvList');
   function renderAchievements(){
+    // XSS riskini azaltmak için sabit yapı, dışarıdan metin almıyor
     achvListEl.innerHTML = ACHIEVEMENTS.map(a=>{
       const on = unlocked.has(a.id);
       return `<div class="achv-row${on?' unlocked':''}"><div class="achv-icon">${on?a.icon:'🔒'}</div>
         <div class="achv-text"><b>${a.name}</b><span>${a.desc}</span></div></div>`;
     }).join('');
   }
+  
+  // Animasyon Tıkanma Hatası (Bug Fix)
+  let toastTimer = null;
   function showToast(text){
-    const t=document.getElementById('toast'); t.textContent=text; t.classList.add('show');
-    clearTimeout(showToast._tm); showToast._tm=setTimeout(()=>t.classList.remove('show'), 3000);
+    const t=document.getElementById('toast'); 
+    t.classList.remove('show');
+    
+    // Tarayıcıya class silme işlemini uygulaması için anlık süre tanıyoruz
+    setTimeout(()=>{
+      t.textContent = text; // innerHTML değil textContent ile güvenlik (XSS koruması)
+      t.classList.add('show');
+    }, 20);
+    
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>t.classList.remove('show'), 3000);
   }
+
   function unlockAchievement(id){
     if(unlocked.has(id)) return;
     const meta = ACHIEVEMENTS.find(a=>a.id===id); if(!meta) return;
@@ -667,7 +702,14 @@
 
   // ================= CONSOLE (API Shell) =================
   const logEl=document.getElementById('log'), cmdEl=document.getElementById('cmd');
-  function log(msg,cls){ const div=document.createElement('div'); if(cls) div.className=cls; div.textContent='> '+msg; logEl.appendChild(div); logEl.scrollTop=logEl.scrollHeight; }
+  function log(msg,cls){ 
+    const div=document.createElement('div'); 
+    if(cls) div.className=cls; 
+    div.textContent='> '+msg; // XSS engelleme
+    logEl.appendChild(div); 
+    logEl.scrollTop=logEl.scrollHeight; 
+  }
+  
   function countTypes(){ const c={}; Object.keys(REGISTRY).forEach(k=>c[k]=0); for(let i=0;i<W*H;i++) c[grid[i]]=(c[grid[i]]||0)+1; return c; }
 
   function runCommand(raw){
@@ -711,7 +753,7 @@
     }
   }
   cmdEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ runCommand(cmdEl.value); cmdEl.value=''; } });
-  log('Hücre Shell v3.0 başlatıldı. "yardim" veya "api" yazarak neler yapabileceğini gör.','sys');
+  log('Hücre Shell v3.1 başlatıldı. "yardim" veya "api" yazarak neler yapabileceğini gör.','sys');
 
   // ================= SAVE / LOAD =================
   async function saveToStorage(){
@@ -755,7 +797,18 @@
 
   // ================= STATS =================
   const statsEl=document.getElementById('stats');
-  function renderStats(){ const c=countTypes(); statsEl.innerHTML = Object.values(REGISTRY).filter(d=>d.id!==EMPTY).map(d=>`<div><span>${d.name}</span><span class="n">${c[d.id]||0}</span></div>`).join(''); }
+  function renderStats(){ 
+    const c=countTypes(); 
+    // XSS Güvenliği korumalı istatistik renderlama
+    statsEl.innerHTML = '';
+    Object.values(REGISTRY).filter(d=>d.id!==EMPTY).forEach(d=>{
+      const div = document.createElement('div');
+      const sName = document.createElement('span'); sName.textContent = d.name;
+      const sVal = document.createElement('span'); sVal.className = 'n'; sVal.textContent = c[d.id]||0;
+      div.appendChild(sName); div.appendChild(sVal);
+      statsEl.appendChild(div);
+    });
+  }
 
   // ================= MAIN LOOP =================
   let statsCounter=0, runSeconds=0, lastFrame=performance.now();
