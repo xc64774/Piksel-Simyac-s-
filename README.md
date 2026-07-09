@@ -31,4 +31,4 @@ Oyun ekranındaki arayüzü kullanarak her şeyi kontrol edebilirsiniz. Ek olara
 
 ## 🤝 Geliştirme Süreci
 
-Bu simülasyon motoru, performanslı Canvas çizimi ve Vanilla JS limitlerini test etmek amacıyla oluşturulmuştur. Geliştirme sürecinin mantıksal kurgusu ve algoritmik yapısı oluşturulurken **Claude AI** ile eşli programlama (pair programming) yapılmıştır. Yeni reaksiyon fikirlerine ve performans iyileştirmesi (Pull Request) yapacak herkese açıktır!
+Bu simülasyon motoru, performanslı Canvas çizimi ve Vanilla JS limitlerini test etmek amacıyla oluşturulmuştur. Geliştirme sürecinin mantıksal kurgusu ve algoritmik yapısı oluşturulurken **Claude AI** ile eşli programlama (pair programming) yapılmıştır. Yeni reaksiyon fikirlerine ve performans iyileştirmesi (Pull Request) yapacak herkese açıktır! Türkiye  lise 3 öğrenci bilişim 
