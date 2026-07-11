@@ -193,12 +193,30 @@
   function norm(s){ return s.toLowerCase()
     .replace(/ş/g,'s').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ü/g,'u'); 
                    
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('langTR').addEventListener('click', () => setLanguage('tr'));
     document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
 });
   
+window.onload = function() {
+  const trBtn = document.getElementById('langTR');
+  const enBtn = document.getElementById('langEN');
 
+  if(trBtn) {
+    trBtn.addEventListener('click', () => {
+      console.log('Türkçe tıklandı');
+      setLanguage('tr');
+    });
+  }
+
+  if(enBtn) {
+    enBtn.addEventListener('click', () => {
+      console.log('İngilizce tıklandı');
+      setLanguage('en');
+    });
+  }
+};
   
                                                                                      
   // ================= COLOR =================
