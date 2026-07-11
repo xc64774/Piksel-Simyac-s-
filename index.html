@@ -875,7 +875,15 @@ document.getElementById('langTR').addEventListener('click', () => setLanguage('t
         <div class="achv-text"><b>${a.name}</b><span>${a.desc}</span></div></div>`;
     }).join('');
   }
-  
+  // Satır ~780: setTimeout ile 20ms bekleme şekli doğru, ama
+// classList toggle etmeden önce reflow zorlamak daha güvenli
+function showToast(text){
+    const t=document.getElementById('toast'); 
+    t.classList.remove('show');
+    void t.offsetHeight; // ← Force reflow
+    t.textContent = text;
+    t.classList.add('show');
+}
   // Animasyon Tıkanma Hatası (Bug Fix)
   let toastTimer = null;
   function showToast(text){
