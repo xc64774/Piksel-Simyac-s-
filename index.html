@@ -197,6 +197,204 @@
   function clamp255(v){ return Math.max(0,Math.min(255,v)); }
   function shadeVariants(hex){ const [r,g,b]=hexToRgb(hex); return [0,1,2].map(i=>{const d=(i-1)*16; return [clamp255(r+d),clamp255(g+d),clamp255(b+d)];}); }
 
+  // ================= LANGUAGE SUPPORT =================
+  const STRINGS = {
+    tr: {
+      title: 'SANDBOX::HÜCRE V3.1',
+      badge: 'GÜVENLİ & OPTİMİZE',
+      desc1: 'Kapalı alan, yoğunluk tabanlı hücresel simülasyon. ',
+      desc1b: 'Kenarlar duvardır — hiçbir hücre bu alandan çıkamaz, patlamalar dahil.',
+      version: 'v3.1: Başarım animasyon bug fix, eleman eklemede XSS güvenlik önlemleri, performans optimizasyonları.',
+      element: 'Eleman',
+      brush: 'Fırça',
+      radius: 'Yarıçap',
+      simulation: 'Simülasyon',
+      pause: '⏸ Duraklat',
+      resume: '▶ Başlat',
+      step: '⏭ Adım',
+      clear: '🗑 Temizle',
+      speed: 'Hız',
+      sound: 'Ses',
+      soundOn: '🔊 Ses Açık',
+      soundOff: '🔇 Ses Kapalı',
+      volume: 'Ses Düzeyi',
+      volumeHint: 'Yerleştirme, tutuşma, patlama, buhar ve başarım için küçük sentezlenmiş sesler.',
+      save: '💾 Kaydet',
+      load: '📂 Yükle',
+      saveHint: 'Alanı, özel elemanları ve başarımlarını tarayıcı deposuna kaydeder.',
+      achievements: 'Başarımlar',
+      customElement: 'Özel Eleman Ekle (Kural Tanımla)',
+      name: 'İsim',
+      color: 'Renk',
+      behavior: 'Davranış',
+      powder: 'Toz (düşer, yığılır)',
+      liquid: 'Sıvı (akar, yayılır)',
+      gas: 'Gaz (yükselir, dağılır)',
+      static: 'Sabit (hareket etmez)',
+      density: 'Yoğunluk (1-10, sadece toz/sıvı)',
+      flammable: 'Yanıcı (ateş/lav ile tutuşur)',
+      description: 'Açıklama (opsiyonel, ipucu olarak gösterilir)',
+      addElement: '＋ Eleman Ekle',
+      console: '⌘ API Shell — Konsol',
+      stats: 'İstatistik',
+      selectElement: 'Bir eleman seç veya üzerine gel — ne işe yaradığını burada göreceksin.',
+      eroser: 'Silgi',
+      sand: 'kum',
+      water: 'su',
+      stone: 'taş',
+      wood: 'odun',
+      fire: 'ateş',
+      smoke: 'duman',
+      lava: 'lav',
+      oil: 'yağ',
+      ice: 'buz',
+      acid: 'asit',
+      steam: 'buhar',
+      bomb: 'bomba',
+      seed: 'tohum',
+      plant: 'bitki',
+      glass: 'cam'
+    },
+    en: {
+      title: 'SANDBOX::CELL V3.1',
+      badge: 'SAFE & OPTIMIZED',
+      desc1: 'Enclosed space, density-based cellular simulation. ',
+      desc1b: 'Edges are walls — no cell can escape this space, explosions included.',
+      version: 'v3.1: Achievement animation bug fix, XSS security in element creation, performance optimizations.',
+      element: 'Element',
+      brush: 'Brush',
+      radius: 'Radius',
+      simulation: 'Simulation',
+      pause: '⏸ Pause',
+      resume: '▶ Resume',
+      step: '⏭ Step',
+      clear: '🗑 Clear',
+      speed: 'Speed',
+      sound: 'Sound',
+      soundOn: '🔊 Sound On',
+      soundOff: '🔇 Sound Off',
+      volume: 'Volume',
+      volumeHint: 'Tiny synthesized sounds for placement, ignition, explosion, steam, and achievements.',
+      save: '💾 Save',
+      load: '📂 Load',
+      saveHint: 'Saves the area, custom elements, and achievements to browser storage.',
+      achievements: 'Achievements',
+      customElement: 'Add Custom Element (Define Rule)',
+      name: 'Name',
+      color: 'Color',
+      behavior: 'Behavior',
+      powder: 'Powder (falls, piles up)',
+      liquid: 'Liquid (flows, spreads)',
+      gas: 'Gas (rises, disperses)',
+      static: 'Static (does not move)',
+      density: 'Density (1-10, powder/liquid only)',
+      flammable: 'Flammable (ignites with fire/lava)',
+      description: 'Description (optional, shown as hint)',
+      addElement: '＋ Add Element',
+      console: '⌘ API Shell — Console',
+      stats: 'Statistics',
+      selectElement: 'Select an element or hover over it — you\'ll see what it does here.',
+      eroser: 'Eraser',
+      sand: 'sand',
+      water: 'water',
+      stone: 'stone',
+      wood: 'wood',
+      fire: 'fire',
+      smoke: 'smoke',
+      lava: 'lava',
+      oil: 'oil',
+      ice: 'ice',
+      acid: 'acid',
+      steam: 'steam',
+      bomb: 'bomb',
+      seed: 'seed',
+      plant: 'plant',
+      glass: 'glass'
+    }
+  };
+
+  let currentLang = 'tr';
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    const s = STRINGS[lang];
+    
+    // Header
+    document.querySelector('header h1').firstChild.textContent = s.title;
+    document.querySelector('.badge').textContent = s.badge;
+    document.querySelectorAll('header p')[0].innerHTML = '<b>' + s.desc1b + '</b>';
+    document.querySelector('header p.change').textContent = s.version;
+    
+    // Sections
+    const sections = document.querySelectorAll('section h2');
+    sections[0].textContent = s.element;
+    sections[1].textContent = s.brush;
+    sections[2].textContent = s.simulation;
+    sections[3].textContent = s.sound;
+    sections[4].textContent = 'Kayıt'; // Kullanıcı tanımlı, değişmez
+    sections[5].textContent = s.achievements;
+    sections[6].textContent = s.customElement;
+    sections[7].textContent = s.console;
+    sections[8].textContent = s.stats;
+    
+    // Element info
+    document.getElementById('elemInfo').textContent = s.selectElement;
+    
+    // Rows
+    const rows = document.querySelectorAll('.row');
+    if(rows[0]) rows[0].firstChild.textContent = s.radius;
+    if(rows[1]) rows[1].firstChild.textContent = s.speed;
+    if(rows[2]) rows[2].firstChild.textContent = s.volume;
+    
+    // Buttons
+    document.getElementById('btnPlay').textContent = running ? s.pause : s.resume;
+    document.getElementById('btnStep').textContent = s.step;
+    document.getElementById('btnClear').textContent = s.clear;
+    document.getElementById('btnMute').textContent = soundOn ? s.soundOn : s.soundOff;
+    document.getElementById('btnSave').textContent = s.save;
+    document.getElementById('btnLoad').textContent = s.load;
+    document.getElementById('btnAddElement').textContent = s.addElement;
+    
+    // Form labels
+    const labels = document.querySelectorAll('.formrow label');
+    if(labels[0]) labels[0].textContent = s.name;
+    if(labels[1]) labels[1].textContent = s.color;
+    if(labels[2]) labels[2].textContent = s.behavior;
+    if(labels[3]) labels[3].textContent = s.density;
+    if(labels[4]) labels[4].textContent = s.description;
+    if(labels[5]) labels[5].textContent = s.flammable;
+    
+    // Select options
+    const select = document.getElementById('newState');
+    select.options[0].textContent = s.powder;
+    select.options[1].textContent = s.liquid;
+    select.options[2].textContent = s.gas;
+    select.options[3].textContent = s.static;
+    
+    // Checkboxes
+    const checkLabel = document.querySelector('.check label');
+    if(checkLabel) checkLabel.textContent = s.flammable;
+    
+    // Language buttons
+    document.getElementById('langTR').classList.toggle('on', lang === 'tr');
+    document.getElementById('langEN').classList.toggle('on', lang === 'en');
+    
+    localStorage.setItem('hucre-lang', lang);
+  }
+
+  document.getElementById('langTR').addEventListener('click', () => setLanguage('tr'));
+  document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
+
+  // Load saved language
+  const savedLang = localStorage.getItem('hucre-lang') || 'tr';
+  setLanguage(savedLang);
+
+
+
+
+
+
+  
   // ================= REGISTRY (data-driven rules) =================
   const REGISTRY = {
     [EMPTY]:{id:EMPTY,name:'boş',  state:'gas',   density:0,        flammable:false, shades:shadeVariants('#0a0e0c'), desc:'Seçili alanı temizler.'},
