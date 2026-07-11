@@ -80,10 +80,11 @@
     <p>Kapalı alan, yoğunluk tabanlı hücresel simülasyon. <b>Kenarlar duvardır — hiçbir hücre bu alandan çıkamaz, patlamalar dahil.</b></p>
     <p class="change">v3.1: Başarım animasyon bug fix, eleman eklemede XSS güvenlik önlemleri, performans optimizasyonları.</p>
   </header>
-  <div style="display:flex;gap:8px;margin-bottom:12px;padding:8px 0;border-top:1px solid var(--line);">
-  <button id="langTR" class="tool on" style="flex:1;">🇹🇷 Türkçe</button>
-  <button id="langEN" class="tool" style="flex:1;">🇬🇧 English</button>
+  <div class="lang-switcher" style="display:flex; gap:8px; margin-bottom:12px; padding:8px 0; border-top:1px solid var(--line);">
+  <button id="langTR" class="lang-btn">🇹🇷 Türkçe</button>
+  <button id="langEN" class="lang-btn">🇬🇧 English</button>
 </div>
+
 
   <div class="main">
     <div class="viewport">
@@ -190,8 +191,16 @@
   function inBounds(x,y){ return x>=0 && x<W && y>=0 && y<H; }
   function isBorder(x,y){ return x===0 || x===W-1 || y===0 || y===H-1; }
   function norm(s){ return s.toLowerCase()
-    .replace(/ş/g,'s').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ü/g,'u'); }
+    .replace(/ş/g,'s').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ü/g,'u'); 
+                   
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('langTR').addEventListener('click', () => setLanguage('tr'));
+    document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
+});
+  
 
+  
+                                                                                     
   // ================= COLOR =================
   function hexToRgb(hex){ hex=hex.replace('#',''); if(hex.length===3) hex=hex.split('').map(c=>c+c).join(''); const n=parseInt(hex,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
   function clamp255(v){ return Math.max(0,Math.min(255,v)); }
