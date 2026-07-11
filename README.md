@@ -1,4 +1,4 @@
-# 🧪 Piksel Simyacısı (Pixel Alchemist) V4
+# 🧪 Piksel Simyacısı (Pixel Alchemist) V3.1
 
 HTML5 Canvas ve Vanilla JavaScript kullanılarak sıfırdan geliştirilmiş, dış kütüphane bağımlılığı olmayan, 2.5D yoğunluk tabanlı bir hücresel otomat (cellular automata) simülasyonu. 
 
