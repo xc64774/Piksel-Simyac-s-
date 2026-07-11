@@ -193,31 +193,16 @@
   function norm(s){ return s.toLowerCase()
     .replace(/ş/g,'s').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ü/g,'u'); 
                    
-
+// Satır ~120-145: DOMContentLoaded ve window.onload'da tekrar tanımlı
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('langTR').addEventListener('click', () => setLanguage('tr'));
-    document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
+    // ...
 });
-  
 window.onload = function() {
-  const trBtn = document.getElementById('langTR');
-  const enBtn = document.getElementById('langEN');
-
-  if(trBtn) {
-    trBtn.addEventListener('click', () => {
-      console.log('Türkçe tıklandı');
-      setLanguage('tr');
-    });
-  }
-
-  if(enBtn) {
-    enBtn.addEventListener('click', () => {
-      console.log('İngilizce tıklandı');
-      setLanguage('en');
-    });
-  }
+    // Aynı şey tekrar
 };
-  
+// Satır ~400+: Bir kez daha
+document.getElementById('langTR').addEventListener('click', () => setLanguage('tr'));
                                                                                      
   // ================= COLOR =================
   function hexToRgb(hex){ hex=hex.replace('#',''); if(hex.length===3) hex=hex.split('').map(c=>c+c).join(''); const n=parseInt(hex,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
@@ -890,7 +875,15 @@ window.onload = function() {
         <div class="achv-text"><b>${a.name}</b><span>${a.desc}</span></div></div>`;
     }).join('');
   }
-  
+  // Satır ~780: setTimeout ile 20ms bekleme şekli doğru, ama
+// classList toggle etmeden önce reflow zorlamak daha güvenli
+function showToast(text){
+    const t=document.getElementById('toast'); 
+    t.classList.remove('show');
+    void t.offsetHeight; // ← Force reflow
+    t.textContent = text;
+    t.classList.add('show');
+}
   // Animasyon Tıkanma Hatası (Bug Fix)
   let toastTimer = null;
   function showToast(text){
